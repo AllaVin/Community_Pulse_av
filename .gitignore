@@ -1,0 +1,12 @@
+/.flas
+/.env
+/final_project_plan.md
+/.venv
+/.idea
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Log files
+*.log
