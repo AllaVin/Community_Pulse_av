@@ -1,20 +1,13 @@
 # app/routers/questions.py
+from app.models.category import Category
 from flask import Blueprint, request, jsonify
 from app.models.question import Question
-from app.models import db
+from app.models import db, question
+from app.schemas.questions import MessageResponse, QuestionOut
 
 questions_bp = Blueprint('questions', __name__, url_prefix='/questions')
 
-@questions_bp.route('/', methods=['GET'])
-def get_questions():
-    """Получение списка всех вопросов."""
-    return "Список всех вопросов"
-
-# @questions_bp.route('/', methods=['POST'])
-# def create_question():
-#     """Создание нового вопроса."""
-#     return "Вопрос создан"
-
+# Questions related endpoints
 
 @questions_bp.route("/", methods=["POST"])
 def create_question():
@@ -49,16 +42,51 @@ def create_question():
     }), 201
 
 
+@questions_bp.route('/', methods=['GET'])
+def get_questions():
+    """Получение списка всех вопросов из БД."""
+    questions = Question.query.all()
 
-
+    if questions:
+        question_data = [QuestionOut(id=q.id, text=q.text, category_id=q.category_id) for q in questions]
+        return jsonify(MessageResponse(message=question_data).model_dump()), 200
+    else:
+        return jsonify(MessageResponse(warning="No questions found").model_dump()), 200
 
 
 @questions_bp.route('/<int:id>', methods=['GET'])
 def get_question(id):
     """Получение деталей конкретного вопроса по его ID."""
-    return f"Детали вопроса {id}"
+    question = Question.query.get(id)
+    if question is None:
+        return jsonify({'warning': "Вопрос с таким ID не найден"}), 404
+    return jsonify({'message': f"Вопрос: {question.text}"}), 200
+
+
+@questions_bp.route('/<int:id>', methods=['PUT'])
+def update_question(id):
+    """Обновление конкретного вопроса по его ID."""
+    question = Question.query.get(id)
+    if question is None:
+        return jsonify({'warning': "Вопрос с таким ID не найден"}), 404
+    data = request.get_json()
+    if 'text' in data:
+        question.text = data['text']
+        db.session.commit()
+        return jsonify({'message': f"Вопрос обновлен: {question.text}"}), 200
+    else:
+        return jsonify({'warning': "Текст вопроса не предоставлен"}), 400
+
 
 @questions_bp.route('/<int:id>', methods=['DELETE'])
 def delete_question(id):
     """Удаление конкретного вопроса по его ID."""
-    return f"Вопрос {id} удален"
+    question = Question.query.get(id)
+    if question is None:
+        return jsonify({'warning': "Вопрос с таким ID не найден"}), 404
+
+    db.session.delete(question)
+    db.session.commit()
+    return jsonify({'message': f"Вопрос с идентификатором {question.id} удален"}), 200
+
+

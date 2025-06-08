@@ -1,5 +1,10 @@
 from pydantic import BaseModel, Field
+from typing import Union, List
 
-class QuestionCreate(BaseModel):
-    """<UNK> <UNK> <UNK> <UNK>."""
-    text: str = Field()
+class QuestionOut(BaseModel):
+    id: int
+    text: str = Field(..., description="Text of the question")
+    category_id: int
+
+class MessageResponse(BaseModel):
+    message: Union[str, List[QuestionOut]]

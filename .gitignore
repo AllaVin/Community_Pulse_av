@@ -1,7 +1,7 @@
 /.flas
-/.env
+/.flaskenv.ini
 /final_project_plan.md
-/.venv
+/.venv_cp
 /.idea
 
 # Python cache

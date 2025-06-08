@@ -5,6 +5,7 @@ from app.models.category import Category
 
 categories_bp = Blueprint("categories", __name__, url_prefix="/categories")
 
+
 @categories_bp.route("/", methods=["GET"])
 def get_categories():
     categories = Category.query.all()
@@ -29,12 +30,34 @@ def create_category():
 
 @categories_bp.route('/<int:id>', methods=['GET'])
 def get_category(id):
-    category = Category.query.get_or_404(id)
-    return jsonify({"id": category.id, "name": category.name})
+    category = Category.query.get(id)
+    if category is None:
+        return jsonify({"warning": "No such category ID was found"}), 404
+    return jsonify({"id": category.id, "name": category.name}), 200
 
-@categories_bp.route('/<int:id>', methods=['DELETE'])
+
+@categories_bp.route("/<int:id>", methods=["PUT"])
+def update_category(id):
+    category = Category.query.get(id)
+    if category is None:
+        return jsonify({"warning": "No such category ID was found"}), 404
+
+    data = request.get_json()
+    new_name = data.get("name")
+    if not new_name:
+        return jsonify({"error": "Поле 'name' обязательно"}), 400
+
+    category.name = new_name
+    db.session.commit()
+    return jsonify({"message": "Категория обновлена", "id": category.id, "name": category.name}), 200
+
+
+@categories_bp.route("/<int:id>", methods=["DELETE"])
 def delete_category(id):
-    category = Category.query.get_or_404(id)
+    category = Category.query.get(id)
+    if category is None:
+        return jsonify({"error": "Категория с таким ID не найдена"}), 404
+
     db.session.delete(category)
     db.session.commit()
-    return jsonify({"message": f"Категория {id} удалена"}), 200
+    return jsonify({"message": f"Категория с ID {id} удалена"}), 200

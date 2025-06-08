@@ -17,7 +17,10 @@ def get_responses():
         }
         for stat in statistics
     ]
-    return jsonify(results), 200@responses_bp.route('/', methods=['POST'])
+    return jsonify(results), 200
+
+
+@responses_bp.route('/', methods=['POST'])
 def add_response():
     data = request.get_json()
     if not data or 'question_id' not in data or 'is_agree' not in data:
@@ -38,6 +41,7 @@ def add_response():
     )
     db.session.add(response)
 
+    # Обновление статистики
     statistic = Statistic.query.filter_by(question_id=question.id).first()
     if not statistic:
         statistic = Statistic(question_id=question.id, agree_count=0, disagree_count=0)
