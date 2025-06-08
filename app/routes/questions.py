@@ -48,10 +48,15 @@ def get_questions():
     questions = Question.query.all()
 
     if questions:
-        question_data = [QuestionOut(id=q.id, text=q.text, category_id=q.category_id) for q in questions]
-        return jsonify(MessageResponse(message=question_data).model_dump()), 200
+        serialized = [QuestionOut(id=q.id, text=q.text, category_id=q.category_id) for q in questions]
+        return jsonify(MessageResponse(message=serialized).model_dump()), 200
     else:
-        return jsonify(MessageResponse(warning="No questions found").model_dump()), 200
+        return jsonify(MessageResponse(message="No questions found").model_dump()), 404
+    # if questions:
+    #     question_data = [QuestionOut(id=q.id, text=q.text, category_id=q.category_id) for q in questions]
+    #     return jsonify(MessageResponse(message=question_data).model_dump()), 200
+    # else:
+    #     return jsonify(MessageResponse(warning="No questions found").model_dump()), 200
 
 
 @questions_bp.route('/<int:id>', methods=['GET'])
